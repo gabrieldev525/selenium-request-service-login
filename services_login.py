@@ -26,8 +26,9 @@ def title(text):
 	autentication
 
 	Facebook - ok
-	instagram - ok
-
+	Instagram - ok
+	Twitter - ok. Missing do this work in hideless mode
+	Github - ok
 '''
 
 
@@ -52,6 +53,121 @@ def facebook_login(session, email, password):
 		return True
 	else:
 		return False
+
+	driver.quit()
+
+
+''' 
+	attempt to login on instagram
+	return True if login has been success
+	and return False if login failed
+'''
+def instagram_login(login, password):
+	d = DesiredCapabilities.CHROME
+	d['loggingPrefs'] = { 'performance':'ALL' }
+
+	#browser options
+	browser_options = webdriver.ChromeOptions()
+	browser_options.add_argument('--headless')
+
+
+	#init browser
+	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
+	driver.get('https://www.instagram.com/accounts/login/')
+
+	#getting fields
+	driver.find_element_by_name('username').send_keys(login)
+	driver.find_element_by_name('password').send_keys(password)
+	driver.find_element_by_name('username').send_keys(Keys.ENTER)
+
+	print('wait...')
+	time.sleep(2)
+
+	if driver.find_elements_by_css_selector('#slfErrorAlert'):
+		return False
+	else:
+		return True
+
+	driver.quit()
+
+
+
+
+''' 
+	attempt to login on twitter
+	return True if login has been success
+	and return False if login failed
+'''
+def twitter_login(login, password):
+	d = DesiredCapabilities.CHROME
+	d['loggingPrefs'] = { 'performance':'ALL' }
+
+	#browser options
+	browser_options = webdriver.ChromeOptions()
+	# browser_options.add_argument("--headless")
+
+
+
+	#init browser
+	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
+	driver.get('https://twitter.com/login/')
+
+	# WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "input[placeholder='Phone, email or username']")))
+
+	#getting fields
+	# user = driver.find_element_by_xpath("//*[@class='session[username_or_email]']")
+	user = driver.find_element_by_css_selector("input[placeholder='Phone, email or username']")
+	user.send_keys(login)
+	pswd = driver.find_element_by_css_selector("input[class='js-password-field']")
+	pswd.send_keys(password)
+
+	user.send_keys(Keys.ENTER)
+
+	print('wait...')
+	time.sleep(1)
+
+	if 'error' in driver.current_url:
+		driver.quit()
+		return False
+	else:
+		driver.quit()
+		return True
+
+
+''' 
+	attempt to login on Github
+	return True if login has been success
+	and return False if login failed
+'''
+def github_login(login, password):
+	d = DesiredCapabilities.CHROME
+	d['loggingPrefs'] = { 'performance':'ALL' }
+
+	#browser options
+	browser_options = webdriver.ChromeOptions()
+	browser_options.add_argument('--headless')
+
+
+	#init browser
+	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
+	driver.get('https://github.com/login/')
+
+	# getting fields
+	driver.find_element_by_name('login').send_keys(login)
+	driver.find_element_by_name('password').send_keys(password)
+	driver.find_element_by_name('login').send_keys(Keys.ENTER)
+
+	print('wait...')
+	time.sleep(1)
+
+	if driver.find_elements_by_css_selector('#js-flash-container .flash-error .container'):
+		return False
+	else:
+		return True
+
+#======================#
+#======= testing ======#
+#======================#
 
 
 
@@ -89,39 +205,17 @@ def gmail_login(session, login, password):
 
 
 
-''' 
-	attempt to login on instagram
-'''
-def instagram_login(login, password):
-	d = DesiredCapabilities.CHROME
-	d['loggingPrefs'] = { 'performance':'ALL' }
-
-	#browser options
-	browser_options = webdriver.ChromeOptions()
-	browser_options.add_argument('--headless')
 
 
-	#init browser
-	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
-	driver.get('https://www.instagram.com/accounts/login/')
 
-	#getting fields
-	driver.find_element_by_name('username').send_keys(login)
-	driver.find_element_by_name('password').send_keys(password)
-	driver.find_element_by_name('username').send_keys(Keys.ENTER)
 
-	print('wait...')
-	time.sleep(2)
 
-	if driver.find_elements_by_css_selector('#slfErrorAlert'):
-		return False
+
+def resultLogin(result):
+	if result:
+		print('login successful')
 	else:
-		return True
-
-
-
-
-
+		print('Login failed')
 
 
 
@@ -135,25 +229,23 @@ session.headers.update({
 # facebook login
 title('facebook')
 
-result = facebook_login(session, 'gvictor525.gv@gmail.com', 'gabriel525')
-
-if result:
-	print('login successful')
-else:
-	print('Login failed')
-
+result = facebook_login(session, 'gvictor525.gv@gmail.com', 'gabriel123')
+resultLogin(result)
 
 # instagram login
 
 title('instagram')
 
-result = instagram_login('gvictor525.gv@gmail.com', 'gabriel52')
-if result:
-	print('login successful')
-else:
-	print('Login failed')
+result = instagram_login('gvictor525.gv@gmail.com', 'gabriel123')
+resultLogin(result)
 
-title('gmail')
+# twitter login
+title('twitter')
 
-result = gmail_login(session, 'gvictor525.gv@gmail.com', 'gabriel52')
-print(result)
+result = twitter_login('gvictor', 'gabriel')
+resultLogin(result)
+
+#github login
+title('github')
+result = github_login('gvictor525.gv@gmail.com', 'gabriel123')
+resultLogin(result)
