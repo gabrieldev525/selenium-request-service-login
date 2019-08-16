@@ -4,6 +4,7 @@ import pyquery
 from bs4 import BeautifulSoup
 import ipdb
 from selenium import webdriver
+import time
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,6 +13,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
+import urllib, urllib2, cookielib
+
 
 def title(text):
 	print('=' * len(text))
@@ -19,6 +22,13 @@ def title(text):
 	print('=' * len(text))
 
 
+''' 
+	autentication
+
+	Facebook - ok
+	instagram - ok
+
+'''
 
 
 '''
@@ -35,6 +45,7 @@ def facebook_login(session, email, password):
 		'pass': password
 	}, allow_redirects=False)
 
+	# print(response.cookies)
 
 	# if c_user cookies is setted, login successful 
 	if 'c_user' in response.cookies:
@@ -45,10 +56,43 @@ def facebook_login(session, email, password):
 
 
 
+
+def gmail_login(session, login, password):
+	# form_data={'Email': login, 'Passwd': password}
+	# post = "https://accounts.google.com/signin/challenge/sl/password"
+
+	# with requests.Session() as s:
+	# 	soup = BeautifulSoup(s.get("https://mail.google.com").text, features="lxml")
+	# 	for inp in soup.select("#gaia_loginform input[name]"):
+	# 		if inp["name"] not in form_data:
+	# 			form_data[inp["name"]] = inp["value"]
+	# 	s.post(post, form_data)
+
+	# 	html = s.get("https://mail.google.com/mail/u/0/#inbox").content
+
+	# 	return 'GMAIL_LOGIN' in html
+
+	response = session.post('https://accounts.google.com/signin/challenge/sl/password', data={
+		'Email': login, 'Passwd': password
+	}, allow_redirects=False)
+
+	print(response.cookies)
+
+	# if c_user cookies is setted, login successful 
+	if 'GMAIL_LOGIN' in response.cookies:
+		return True
+	else:
+		return False
+
+
+
+
+
+
 ''' 
 	attempt to login on instagram
 '''
-def instagram_login(session, login, password):
+def instagram_login(login, password):
 	d = DesiredCapabilities.CHROME
 	d['loggingPrefs'] = { 'performance':'ALL' }
 
@@ -58,26 +102,26 @@ def instagram_login(session, login, password):
 
 
 	#init browser
-	browser = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
-	browser.get('https://www.facebook.com/')
+	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
+	driver.get('https://www.instagram.com/accounts/login/')
 
-	try:
-	    element = WebDriverWait(browser, 10).until(
-	        EC.presence_of_element_located((By.NAME, "username"))
-	    )
-	finally:
-		# values
-		loginField = browser.find_element_by_name('username')
-		passwordField = browser.find_element_by_name('password')
+	#getting fields
+	driver.find_element_by_name('username').send_keys(login)
+	driver.find_element_by_name('password').send_keys(password)
+	driver.find_element_by_name('username').send_keys(Keys.ENTER)
 
-		# insertion
-		loginField.send_keys(login)
-		passwordField.send_keys(password)
+	print('wait...')
+	time.sleep(2)
 
-		loginField.send_keys(Keys.ENTER)
+	if driver.find_elements_by_css_selector('#slfErrorAlert'):
+		return False
+	else:
+		return True
 
-		soup = BeautifulSoup(browser.page_source, 'html.parser')
-		print(soup)
+
+
+
+
 
 
 
@@ -91,7 +135,7 @@ session.headers.update({
 # facebook login
 title('facebook')
 
-result = facebook_login(session, 'gvictor525.gv@gmail.com', '123')
+result = facebook_login(session, 'gvictor525.gv@gmail.com', 'gabriel525')
 
 if result:
 	print('login successful')
@@ -103,5 +147,13 @@ else:
 
 title('instagram')
 
-# result = instagram_login(session, 'gabrieldev525', 'gabriel525')
+result = instagram_login('gvictor525.gv@gmail.com', 'gabriel52')
+if result:
+	print('login successful')
+else:
+	print('Login failed')
 
+title('gmail')
+
+result = gmail_login(session, 'gvictor525.gv@gmail.com', 'gabriel52')
+print(result)
