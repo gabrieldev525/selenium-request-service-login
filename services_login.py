@@ -22,13 +22,25 @@ def title(text):
 	print('=' * len(text))
 
 
+# browser configs
+d = DesiredCapabilities.CHROME
+d['loggingPrefs'] = { 'performance':'ALL' }
+
+#browser options
+browser_options = webdriver.ChromeOptions()
+browser_options.add_argument("--headless")
+
+
 ''' 
 	autentication
 
 	Facebook - ok
 	Instagram - ok
-	Twitter - ok. Missing do this work in hideless mode
+	Twitter - ok
 	Github - ok
+	Bitbucket - ok
+	Office 365 - ok
+	Linkedin - ok
 '''
 
 
@@ -63,14 +75,6 @@ def facebook_login(session, email, password):
 	and return False if login failed
 '''
 def instagram_login(login, password):
-	d = DesiredCapabilities.CHROME
-	d['loggingPrefs'] = { 'performance':'ALL' }
-
-	#browser options
-	browser_options = webdriver.ChromeOptions()
-	browser_options.add_argument('--headless')
-
-
 	#init browser
 	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
 	driver.get('https://www.instagram.com/accounts/login/')
@@ -99,32 +103,21 @@ def instagram_login(login, password):
 	and return False if login failed
 '''
 def twitter_login(login, password):
-	d = DesiredCapabilities.CHROME
-	d['loggingPrefs'] = { 'performance':'ALL' }
-
-	#browser options
-	browser_options = webdriver.ChromeOptions()
-	# browser_options.add_argument("--headless")
-
-
-
 	#init browser
 	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
 	driver.get('https://twitter.com/login/')
 
-	# WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "input[placeholder='Phone, email or username']")))
-
 	#getting fields
-	# user = driver.find_element_by_xpath("//*[@class='session[username_or_email]']")
-	user = driver.find_element_by_css_selector("input[placeholder='Phone, email or username']")
+	user = driver.find_element_by_class_name("js-username-field")
 	user.send_keys(login)
-	pswd = driver.find_element_by_css_selector("input[class='js-password-field']")
+	
+	pswd = driver.find_element_by_class_name("js-password-field")
 	pswd.send_keys(password)
 
 	user.send_keys(Keys.ENTER)
 
 	print('wait...')
-	time.sleep(1)
+	time.sleep(2)
 
 	if 'error' in driver.current_url:
 		driver.quit()
@@ -140,14 +133,6 @@ def twitter_login(login, password):
 	and return False if login failed
 '''
 def github_login(login, password):
-	d = DesiredCapabilities.CHROME
-	d['loggingPrefs'] = { 'performance':'ALL' }
-
-	#browser options
-	browser_options = webdriver.ChromeOptions()
-	browser_options.add_argument('--headless')
-
-
 	#init browser
 	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
 	driver.get('https://github.com/login/')
@@ -158,9 +143,100 @@ def github_login(login, password):
 	driver.find_element_by_name('login').send_keys(Keys.ENTER)
 
 	print('wait...')
-	time.sleep(1)
+	time.sleep(2)
 
 	if driver.find_elements_by_css_selector('#js-flash-container .flash-error .container'):
+		return False
+	else:
+		return True
+
+
+''' 
+	attempt to login on Bitbucket
+	return True if login has been success
+	and return False if login failed
+'''#js-flash-container .flash-error .container
+def bitbucket_login(login, password):
+	#init browser
+	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
+	driver.get('https://bitbucket.org/account/signin/')
+
+	# getting fields
+	user = driver.find_element_by_id('username')
+	user.send_keys(login)
+	user.send_keys(Keys.ENTER) #continue
+
+	time.sleep(1)
+
+	pswd = driver.find_element_by_id('password')
+	pswd.send_keys(password)
+
+	pswd.send_keys(Keys.ENTER) #login
+
+	print('wait...')
+	time.sleep(4)
+
+	if driver.find_elements_by_css_selector('#login-error span'):
+		return False
+	else:
+		return True
+	
+''' 
+	attempt to login on Office 365
+	return True if login has been success
+	and return False if login failed
+'''#js-flash-container .flash-error .container
+def office365_login(login, password):
+	#init browser
+	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
+	driver.get('https://www.office.com/login?es=Click&ru=%2F%3Fomkt%3Dpt-br')
+
+	#getting fields
+	user = driver.find_element_by_name('loginfmt')
+	user.send_keys(login)
+	user.send_keys(Keys.ENTER) #continue
+
+	time.sleep(2)
+
+	if driver.find_elements_by_css_selector('#usernameError'):
+		return False
+	else:
+		pswd = driver.find_element_by_name('passwd')
+		pswd.send_keys(password)
+
+		pswd.send_keys(Keys.ENTER) #login
+
+	print('wait...')
+	time.sleep(4)
+
+	if driver.find_elements_by_css_selector('#login-error span') or driver.find_elements_by_css_selector('#error_Info'):
+		return False
+	else:
+		return True
+
+''' 
+	attempt to login on Office 365
+	return True if login has been success
+	and return False if login failed
+'''#js-flash-container .flash-error .container
+def linkedin_login(login, password):
+	#init browser
+	driver = webdriver.Chrome('/usr/bin/chromedriver', options=browser_options, desired_capabilities=d)
+	driver.get('https://www.linkedin.com/uas/login?_l=pt')
+
+	#getting fields
+	user = driver.find_element_by_id('username')
+	user.send_keys(login)
+
+	pswd = driver.find_element_by_id('password')
+	pswd.send_keys(password)
+
+	pswd.send_keys(Keys.ENTER) #login
+
+	print('wait...')
+	time.sleep(2)
+
+	if driver.find_elements_by_css_selector(".form__input--error"):
 		return False
 	else:
 		return True
@@ -247,5 +323,20 @@ resultLogin(result)
 
 #github login
 title('github')
-result = github_login('gvictor525.gv@gmail.com', 'gabriel123')
+result = github_login('gvictor525.gv@gmail.com', '123')
+resultLogin(result)
+
+#Bitbucket
+title('bitbucket')
+result = bitbucket_login('gvictor525.gv@gmail.com', '123')
+resultLogin(result)
+
+#Office 365
+title('office 365')
+result = office365_login('teste', '123')
+resultLogin(result)
+
+#Linkedin
+title('Linkedin')
+result = linkedin_login('gvictor525.gv@gmail.com', '123')
 resultLogin(result)
